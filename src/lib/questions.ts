@@ -52,7 +52,7 @@ export const FREE_FORM_QUESTIONS: { id: string; label: string; placeholder: stri
   {
     id: "moneyViews",
     label: "How do you see money?",
-    placeholder: "A few words or sentences…",
+    placeholder: "I see money as a tool for freedom, security, and opportunity.",
   },
   {
     id: "moneyAssociation",
