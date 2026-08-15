@@ -1,6 +1,6 @@
-import { useState } from "react"
+import { useRef } from "react"
 import { useNavigate } from "react-router-dom"
-import { ArrowLeft, ArrowRight } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -10,81 +10,107 @@ import { LikertRating } from "@/components/LikertRating"
 import { QUESTIONS, FREE_FORM_QUESTIONS } from "@/lib/questions"
 import { useQuiz } from "@/context/quiz"
 
-const TOTAL_STEPS = QUESTIONS.length + FREE_FORM_QUESTIONS.length
-
 export default function Quiz() {
   const { answers, freeForm, setAnswer, setFreeForm, completeQuiz } = useQuiz()
   const navigate = useNavigate()
-  const [step, setStep] = useState(0)
 
-  const isQuestion = step < QUESTIONS.length
-  const question = QUESTIONS[step]
-  const answered = isQuestion ? answers[question.id] !== undefined : true
-  const progress = Math.round((step / TOTAL_STEPS) * 100)
+  const questionRefs = useRef<(HTMLDivElement | null)[]>([])
+  const freeFormRef = useRef<HTMLDivElement | null>(null)
 
-  const goNext = () => {
-    if (isQuestion) {
-      setStep((s) => s + 1)
+  const answeredCount = QUESTIONS.filter((q) => answers[q.id] !== undefined).length
+  const progress = Math.round((answeredCount / QUESTIONS.length) * 100)
+
+  /** On a fresh answer, snap to the next unanswered question (or the free-form section). */
+  const handleAnswer = (id: string, value: number, index: number) => {
+    const isNewAnswer = answers[id] === undefined
+    setAnswer(id, value)
+    if (!isNewAnswer) return
+
+    const nextIndex = QUESTIONS.findIndex(
+      (q, i) => i > index && answers[q.id] === undefined,
+    )
+    if (nextIndex !== -1) {
+      questionRefs.current[nextIndex]?.scrollIntoView({ behavior: "smooth", block: "center" })
     } else {
-      completeQuiz()
-      navigate("/result")
+      freeFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
     }
   }
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col justify-center gap-6 px-4 py-10">
-      <div className="space-y-2">
+    <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 px-4 py-8">
+      {/* Sticky progress */}
+      <div className="sticky top-0 z-10 -mx-4 border-b bg-background/90 px-4 py-3 backdrop-blur">
         <div className="flex items-baseline justify-between text-sm text-muted-foreground">
+          <span>Your progress</span>
           <span>
-            {isQuestion ? `Question ${step + 1} of ${QUESTIONS.length}` : "Almost done"}
+            {answeredCount} of {QUESTIONS.length} answered
           </span>
-          <span>{progress}%</span>
         </div>
-        <Progress value={progress} aria-label="Quiz progress" />
+        <Progress value={progress} className="mt-2" aria-label="Quiz progress" />
       </div>
 
-      <Card>
-        <CardContent className="space-y-6 p-6 sm:p-8">
-          {isQuestion ? (
-            <>
-              <h1 className="text-2xl font-semibold leading-snug text-balance">{question.text}</h1>
-              <LikertRating value={answers[question.id]} onChange={(v) => setAnswer(question.id, v)} />
-            </>
-          ) : (
-            <div className="space-y-6">
-              <h1 className="text-2xl font-semibold">How do you see money?</h1>
-              {FREE_FORM_QUESTIONS.map((q) => (
-                <div key={q.id} className="space-y-2">
-                  <Label htmlFor={q.id}>{q.label}</Label>
-                  <Textarea
-                    id={q.id}
-                    value={freeForm[q.id as keyof typeof freeForm]}
-                    onChange={(e) => setFreeForm(q.id as keyof typeof freeForm, e.target.value)}
-                    placeholder={q.placeholder}
-                    rows={3}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <div className="space-y-5">
+        <h1 className="text-2xl font-bold tracking-tight">
+          How do you feel in close relationships?
+        </h1>
+        <p className="-mt-3 text-sm text-muted-foreground">
+          Rate each statement 1 (strongly disagree) to 7 (strongly agree). Your answers
+          jump to the next question automatically — you can scroll back to change any.
+        </p>
 
-      <div className="flex items-center justify-between">
-        <Button
-          variant="ghost"
-          onClick={() => setStep((s) => Math.max(0, s - 1))}
-          disabled={step === 0}
-        >
-          <ArrowLeft className="size-4" /> Back
-        </Button>
-        <Button onClick={goNext} disabled={!answered} className="gap-2">
-          {isQuestion ? (
-            <>Next <ArrowRight className="size-4" /></>
-          ) : (
-            "Get my result"
-          )}
-        </Button>
+        {QUESTIONS.map((q, i) => (
+          <Card
+            key={q.id}
+            ref={(el) => {
+              questionRefs.current[i] = el
+            }}
+          >
+            <CardContent className="space-y-5 p-5 sm:p-6">
+              <div className="flex items-baseline gap-3">
+                <span className="shrink-0 rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                  {i + 1}
+                </span>
+                <h2 className="text-lg font-semibold leading-snug">{q.text}</h2>
+              </div>
+              <LikertRating
+                value={answers[q.id]}
+                onChange={(v) => handleAnswer(q.id, v, i)}
+              />
+            </CardContent>
+          </Card>
+        ))}
+
+        {/* Free-form section — the target for the final snap */}
+        <Card ref={freeFormRef}>
+          <CardContent className="space-y-6 p-5 sm:p-6">
+            <h2 className="text-xl font-semibold">How do you see money?</h2>
+            {FREE_FORM_QUESTIONS.map((q) => (
+              <div key={q.id} className="space-y-2">
+                <Label htmlFor={q.id}>{q.label}</Label>
+                <Textarea
+                  id={q.id}
+                  value={freeForm[q.id as keyof typeof freeForm]}
+                  onChange={(e) => setFreeForm(q.id as keyof typeof freeForm, e.target.value)}
+                  placeholder={q.placeholder}
+                  rows={3}
+                />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <div className="pb-10 text-center">
+          <Button
+            size="lg"
+            className="gap-2 text-base"
+            onClick={() => {
+              completeQuiz()
+              navigate("/result")
+            }}
+          >
+            Get my result <ArrowRight className="size-4" />
+          </Button>
+        </div>
       </div>
     </main>
   )
