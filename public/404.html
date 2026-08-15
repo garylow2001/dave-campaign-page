@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Redirecting…</title>
+    <script>
+      // GitHub Pages serves this file for any path that isn't a real file.
+      // Stash the requested URL, then load the app root so index.html can restore it.
+      sessionStorage.setItem(
+        "dave-campaign-redirect",
+        location.pathname + location.search + location.hash,
+      )
+    </script>
+    <meta http-equiv="refresh" content="0; url=/dave-campaign-page/" />
+  </head>
+  <body></body>
+</html>
