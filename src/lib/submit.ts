@@ -11,7 +11,9 @@ export interface SubmissionPayload {
 }
 
 const ENDPOINT = import.meta.env.VITE_SHEETS_ENDPOINT ?? ""
-const SHARED_TOKEN = import.meta.env.VITE_SHEETS_TOKEN ?? ""
+// Trim: a stray trailing newline in a secret/env value would otherwise make the
+// strict token check in Code.gs fail (token + "\n" !== token).
+const SHARED_TOKEN = (import.meta.env.VITE_SHEETS_TOKEN ?? "").trim()
 
 /**
  * Fire-and-forget save to the Google Apps Script → Google Sheet sink.
