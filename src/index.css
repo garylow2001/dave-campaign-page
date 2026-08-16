@@ -49,6 +49,8 @@
     --color-brand-from: var(--brand-from);
     --color-brand-to: var(--brand-to);
     --color-brand-glow: var(--brand-glow);
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--warning-foreground);
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);

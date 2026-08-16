@@ -47,6 +47,28 @@ export const LIKERT_LABELS: Record<number, string> = {
   7: "Strongly agree",
 }
 
+/**
+ * Indices of questions the respondent "passed over": an earlier question left
+ * unanswered while a later one has been answered (e.g. answering q6 with q4
+ * and q5 blank flags those two). Questions after the last answered one are
+ * simply "not reached yet" and never flagged.
+ */
+export function findSkippedIndices(
+  answers: Record<string, number>,
+  questions: readonly QuizItem[] = QUESTIONS,
+): number[] {
+  let lastAnswered = -1
+  for (let i = 0; i < questions.length; i++) {
+    if (answers[questions[i].id] !== undefined) lastAnswered = i
+  }
+
+  const skipped: number[] = []
+  for (let i = 0; i < lastAnswered; i++) {
+    if (answers[questions[i].id] === undefined) skipped.push(i)
+  }
+  return skipped
+}
+
 /** "How do you see money?" free-form questions (kept per brief) */
 export const FREE_FORM_QUESTIONS: { id: string; label: string; placeholder: string }[] = [
   {

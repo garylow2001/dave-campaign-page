@@ -33,6 +33,8 @@ describe("theme palettes", () => {
       [scheme.mutedForeground, scheme.background],
       [scheme.mutedForeground, scheme.muted],
       [scheme.accentForeground, scheme.accent],
+      // warning text sits on the page background (or a light warning tint of it)
+      [scheme.warningForeground, scheme.background],
       [scheme.sidebarForeground, scheme.sidebar],
       // brand gradient text sits directly on the page background
       [scheme.brandFrom, scheme.background],
@@ -43,6 +45,20 @@ describe("theme palettes", () => {
         contrast(fg, bg),
         `${fg} on ${bg}`,
       ).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
+  it.each([
+    ["light", light],
+    ["dark", dark],
+  ] as const)("%s UI-component colors meet WCAG non-text contrast (≥3.0)", (_mode, scheme: ColorScheme) => {
+    // warning is decorative here (ring / tinted chip fills), never small text.
+    const pairs: [string, string][] = [[scheme.warning, scheme.background]]
+    for (const [fg, bg] of pairs) {
+      expect(
+        contrast(fg, bg),
+        `${fg} on ${bg}`,
+      ).toBeGreaterThanOrEqual(3.0)
     }
   })
 })

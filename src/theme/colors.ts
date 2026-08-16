@@ -26,6 +26,8 @@ export type ColorScheme = {
   accent: string
   accentForeground: string
   destructive: string
+  warning: string
+  warningForeground: string
   border: string
   input: string
   ring: string
@@ -71,6 +73,8 @@ export const light: ColorScheme = {
   accent: "#D9EEEC",
   accentForeground: "#0C5B57",
   destructive: "#C62828",
+  warning: "#EF4444",
+  warningForeground: "#B91C1C",
   border: "#D7E1EA",
   input: "#C3D1DC",
   ring: "#2AA6A6",
@@ -110,6 +114,8 @@ export const dark: ColorScheme = {
   accent: "#1B3738",
   accentForeground: "#9FE0DB",
   destructive: "#FF7070",
+  warning: "#F87171",
+  warningForeground: "#FECACA",
   border: "#22364A",
   input: "#2A4054",
   ring: "#2AA6A6",
