@@ -1,14 +1,23 @@
 import { useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { ArrowRight } from "lucide-react"
+import { motion } from "motion/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { LikertRating } from "@/components/LikertRating"
+import { HoverLift } from "@/components/motion/HoverLift"
 import { QUESTIONS, FREE_FORM_QUESTIONS } from "@/lib/questions"
 import { useQuiz } from "@/context/quiz"
+
+const cardReveal = {
+  initial: { opacity: 0, y: 16 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, amount: 0.2 },
+  transition: { duration: 0.35, ease: "easeOut" as const },
+}
 
 export default function Quiz() {
   const { answers, freeForm, setAnswer, setFreeForm, completeQuiz } = useQuiz()
@@ -49,7 +58,12 @@ export default function Quiz() {
         <Progress value={progress} className="mt-2" aria-label="Quiz progress" />
       </div>
 
-      <div className="space-y-5">
+      <motion.div
+        className="space-y-5"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+      >
         <h1 className="text-2xl font-bold tracking-tight">
           How do you feel in close relationships?
         </h1>
@@ -59,59 +73,67 @@ export default function Quiz() {
         </p>
 
         {QUESTIONS.map((q, i) => (
-          <Card
+          <motion.div
             key={q.id}
             ref={(el) => {
               questionRefs.current[i] = el
             }}
+            {...cardReveal}
           >
-            <CardContent className="space-y-5 p-5 sm:p-6">
-              <div className="flex items-baseline gap-3">
-                <span className="shrink-0 rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                  {i + 1}
-                </span>
-                <h2 className="text-lg font-semibold leading-snug">{q.text}</h2>
-              </div>
-              <LikertRating
-                value={answers[q.id]}
-                onChange={(v) => handleAnswer(q.id, v, i)}
-              />
-            </CardContent>
-          </Card>
+            <Card>
+              <CardContent className="space-y-5 p-5 sm:p-6">
+                <div className="flex items-baseline gap-3">
+                  <span className="shrink-0 rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                    {i + 1}
+                  </span>
+                  <h2 className="text-lg font-semibold leading-snug">{q.text}</h2>
+                </div>
+                <LikertRating
+                  value={answers[q.id]}
+                  onChange={(v) => handleAnswer(q.id, v, i)}
+                />
+              </CardContent>
+            </Card>
+          </motion.div>
         ))}
 
         {/* Free-form section — the target for the final snap */}
-        <Card ref={freeFormRef}>
-          <CardContent className="space-y-6 p-5 sm:p-6">
-            <h2 className="text-xl font-semibold">How do you see money?</h2>
-            {FREE_FORM_QUESTIONS.map((q) => (
-              <div key={q.id} className="space-y-2">
-                <Label htmlFor={q.id}>{q.label}</Label>
-                <Textarea
-                  id={q.id}
-                  value={freeForm[q.id as keyof typeof freeForm]}
-                  onChange={(e) => setFreeForm(q.id as keyof typeof freeForm, e.target.value)}
-                  placeholder={q.placeholder}
-                  rows={3}
-                />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        <motion.div ref={freeFormRef} {...cardReveal}>
+          <Card>
+            <CardContent className="space-y-6 p-5 sm:p-6">
+              <h2 className="text-xl font-semibold">How do you see money?</h2>
+              {FREE_FORM_QUESTIONS.map((q) => (
+                <div key={q.id} className="space-y-2">
+                  <Label htmlFor={q.id}>{q.label}</Label>
+                  <Textarea
+                    id={q.id}
+                    value={freeForm[q.id as keyof typeof freeForm]}
+                    onChange={(e) => setFreeForm(q.id as keyof typeof freeForm, e.target.value)}
+                    placeholder={q.placeholder}
+                    rows={3}
+                  />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </motion.div>
 
         <div className="pb-10 text-center">
-          <Button
-            size="lg"
-            className="gap-2 text-base"
-            onClick={() => {
-              completeQuiz()
-              navigate("/result")
-            }}
-          >
-            Get my result <ArrowRight className="size-4" />
-          </Button>
+          <HoverLift>
+            <Button
+              size="lg"
+              className="gap-2 text-base"
+              onClick={() => {
+                completeQuiz()
+                navigate("/result")
+              }}
+            >
+              Get my result{" "}
+              <ArrowRight className="size-4 transition-transform group-hover/button:translate-x-0.5" />
+            </Button>
+          </HoverLift>
         </div>
-      </div>
+      </motion.div>
     </main>
   )
 }

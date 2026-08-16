@@ -1,40 +1,69 @@
 import { Link } from "react-router-dom"
 import { ArrowRight } from "lucide-react"
+import { motion } from "motion/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { HoverLift } from "@/components/motion/HoverLift"
+import { fadeUp, staggerContainer } from "@/components/motion/variants"
 
 export default function Landing() {
   return (
     <main className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden px-4 py-16">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.14),transparent_60%)]" />
+      {/* Brand glow — colors come from the theme config (brandGlow token). */}
+      <div className="pointer-events-none absolute inset-0 -z-10 animate-glow bg-[radial-gradient(ellipse_at_top,var(--brand-glow),transparent_60%)]" />
 
-      <div className="w-full max-w-2xl space-y-8 text-center">
-        <span className="inline-flex items-center rounded-full border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
+      <motion.div
+        className="w-full max-w-2xl space-y-8 text-center"
+        variants={staggerContainer(0.09)}
+        initial="hidden"
+        animate="show"
+      >
+        <motion.span
+          variants={fadeUp}
+          className="inline-flex items-center rounded-full border bg-card px-3 py-1 text-xs font-medium text-muted-foreground"
+        >
           Free · 2-minute quiz
-        </span>
+        </motion.span>
 
-        <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-5xl">
+        <motion.h1
+          variants={fadeUp}
+          className="text-4xl font-bold tracking-tight text-balance sm:text-5xl"
+        >
           Find out how your{" "}
-          <span className="bg-gradient-to-r from-indigo-500 to-sky-500 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-brand-from to-brand-to bg-clip-text text-transparent">
             attachment style
           </span>{" "}
           affects your relationship with money
-        </h1>
+        </motion.h1>
 
-        <p className="mx-auto max-w-xl text-lg text-muted-foreground">
+        <motion.p
+          variants={fadeUp}
+          className="mx-auto max-w-xl text-lg text-muted-foreground"
+        >
           A short quiz that reveals how you hold closeness and trust — and what that means for how you
           earn, save, and spend.
-        </p>
+        </motion.p>
 
-        <div>
-          <Link to="/quiz">
-            <Button size="lg" className="gap-2 text-base">
-              Start the quiz <ArrowRight className="size-4" />
-            </Button>
-          </Link>
-        </div>
+        <motion.div variants={fadeUp}>
+          <HoverLift>
+            <Link to="/quiz">
+              <Button size="lg" className="gap-2 text-base">
+                Start the quiz{" "}
+                <ArrowRight className="size-4 transition-transform group-hover/button:translate-x-0.5" />
+              </Button>
+            </Link>
+          </HoverLift>
+        </motion.div>
+      </motion.div>
 
-        <Card className="mt-10 text-left">
+      <motion.div
+        className="mt-10 w-full max-w-2xl text-left"
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+      >
+        <Card>
           <CardContent className="space-y-3 p-6">
             <h2 className="text-lg font-semibold">Who we are</h2>
             <p className="text-muted-foreground">
@@ -47,7 +76,7 @@ export default function Landing() {
             </p>
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
     </main>
   )
 }

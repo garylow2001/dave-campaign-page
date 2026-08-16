@@ -38,10 +38,14 @@ interface QuizContextValue {
   freeForm: FreeForm
   result: QuizResult | null
   submitState: SubmitState
+  /** True only right after a fresh completion — drives the Result-page reveal. In-memory, never persisted. */
+  justCompleted: boolean
   setAnswer: (id: string, value: number) => void
   setFreeForm: (id: keyof FreeForm, value: string) => void
   /** Score the answers, stash the result, and fire the (non-blocking) save. */
   completeQuiz: () => void
+  /** Consume the fresh-completion flag once the Result page has handled it. */
+  markResultSeen: () => void
   retrySubmit: () => void
   resetQuiz: () => void
 }
@@ -54,6 +58,7 @@ export function QuizProvider({ children }: { children: ReactNode }) {
   const [freeForm, setFreeFormState] = useState<FreeForm>(initial.freeForm)
   const [result, setResult] = useState<QuizResult | null>(initial.result)
   const [submitState, setSubmitState] = useState<SubmitState>(initial.result ? "sent" : "idle")
+  const [justCompleted, setJustCompleted] = useState(false)
 
   // Persist across refreshes (also survives accidental navigation away).
   useEffect(() => {
@@ -87,8 +92,11 @@ export function QuizProvider({ children }: { children: ReactNode }) {
   const completeQuiz = useCallback(() => {
     const res = scoreQuiz(answers)
     setResult(res)
+    setJustCompleted(true)
     runSubmit(answers, freeForm, res)
   }, [answers, freeForm, runSubmit])
+
+  const markResultSeen = useCallback(() => setJustCompleted(false), [])
 
   const retrySubmit = useCallback(() => {
     if (result) runSubmit(answers, freeForm, result)
@@ -99,6 +107,7 @@ export function QuizProvider({ children }: { children: ReactNode }) {
     setFreeFormState(EMPTY_FREEFORM)
     setResult(null)
     setSubmitState("idle")
+    setJustCompleted(false)
     sessionStorage.removeItem(STORAGE_KEY)
   }, [])
 
@@ -107,9 +116,11 @@ export function QuizProvider({ children }: { children: ReactNode }) {
     freeForm,
     result,
     submitState,
+    justCompleted,
     setAnswer,
     setFreeForm,
     completeQuiz,
+    markResultSeen,
     retrySubmit,
     resetQuiz,
   }
