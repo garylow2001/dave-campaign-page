@@ -32,7 +32,6 @@ jobs:
           VITE_SHEETS_ENDPOINT: ${{ secrets.VITE_SHEETS_ENDPOINT }}
           VITE_SHEETS_TOKEN: ${{ secrets.VITE_SHEETS_TOKEN }}
           VITE_CALENDLY_URL: ${{ vars.VITE_CALENDLY_URL }}
-          VITE_SHOW_INCENTIVE: ${{ vars.VITE_SHOW_INCENTIVE }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
-import { Loader2 } from "lucide-react"
+import { DotLottieReact } from "@lottiefiles/dotlottie-react"
 
 const STATUS_LINES = [
   "Scoring your attachment dimensions…",
@@ -25,7 +25,9 @@ export function ResultAnalyzer() {
 
   return (
     <div className="flex flex-col items-center justify-center gap-6 py-24 text-center">
-      <Loader2 className="size-10 animate-spin text-primary" aria-hidden />
+      <div className="w-40 sm:w-48" aria-hidden="true">
+        <DotLottieReact src={`${import.meta.env.BASE_URL}moneylottie.lottie`} loop autoplay />
+      </div>
       <div className="w-full max-w-xs space-y-3">
         <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
           <motion.div

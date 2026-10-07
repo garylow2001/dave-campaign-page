@@ -17,12 +17,13 @@ export default function Landing() {
         initial="hidden"
         animate="show"
       >
-        <motion.span
-          variants={fadeUp}
-          className="inline-flex items-center rounded-full border bg-card px-3 py-1 text-xs font-medium text-muted-foreground"
-        >
-          Free · 5-minute quiz
-        </motion.span>
+        <motion.div variants={fadeUp} className="mx-auto w-44 sm:w-52">
+          <img
+            src={`${import.meta.env.BASE_URL}brand.jpg`}
+            alt="AttachedToMoney"
+            className="aspect-square w-full rounded-3xl object-cover"
+          />
+        </motion.div>
 
         <motion.h1
           variants={fadeUp}
@@ -58,7 +59,7 @@ export default function Landing() {
           variants={fadeUp}
           className="mx-auto max-w-xl text-sm text-muted-foreground"
         >
-          A 5-minute assessment exploring attachment, money habits and career motivations.
+          A 5-minute assessment exploring attachment and money habits.
         </motion.p>
       </motion.div>
     </main>

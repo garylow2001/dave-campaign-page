@@ -63,13 +63,7 @@ export const QUIZ_SECTIONS: QuizSectionMeta[] = [
     eyebrow: "Section C · What money means",
     title: "What does money represent to you?",
     intro:
-      "This section explores why money matters to you — not how competent you are with it. Same 1–7 scale.",
-  },
-  {
-    key: "career",
-    eyebrow: "Section D · Career & money drive",
-    title: "How do money and career mix for you?",
-    intro: "Final scored section — how money, security and autonomy influence your career choices.",
+      "Final scored section — this explores why money matters to you, not how competent you are with it. Same 1–7 scale.",
   },
 ]
 

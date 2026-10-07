@@ -9,7 +9,7 @@ import { LikertRating } from "@/components/LikertRating"
 import { HoverLift } from "@/components/motion/HoverLift"
 import { cn } from "@/lib/utils"
 import { QUESTIONS, QUIZ_SECTIONS, findSkippedIndices } from "@/lib/questions"
-import { MONEY_BEHAVIOUR_QUESTIONS, MONEY_MEANING_QUESTIONS, CAREER_QUESTIONS } from "@/lib/money"
+import { MONEY_BEHAVIOUR_QUESTIONS, MONEY_MEANING_QUESTIONS } from "@/lib/money"
 import { useQuiz } from "@/context/quiz"
 
 const cardReveal = {
@@ -36,7 +36,6 @@ export default function Quiz() {
       { meta: QUIZ_SECTIONS[0], items: QUESTIONS },
       { meta: QUIZ_SECTIONS[1], items: MONEY_BEHAVIOUR_QUESTIONS },
       { meta: QUIZ_SECTIONS[2], items: MONEY_MEANING_QUESTIONS },
-      { meta: QUIZ_SECTIONS[3], items: CAREER_QUESTIONS },
     ]
     let offset = 0
     return blocks.map((b) => {

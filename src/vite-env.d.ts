@@ -5,10 +5,8 @@ interface ImportMetaEnv {
   readonly VITE_SHEETS_ENDPOINT?: string
   /** Shared secret the Apps Script checks before writing. */
   readonly VITE_SHEETS_TOKEN?: string
-  /** Calendly embed URL, e.g. https://calendly.com/<user>/<event> */
+  /** Calendly event URL (opens as a popup), e.g. https://calendly.com/<user>/<event> */
   readonly VITE_CALENDLY_URL?: string
-  /** "true" shows the incentive banner on the result page. */
-  readonly VITE_SHOW_INCENTIVE?: string
 }
 
 interface ImportMeta {

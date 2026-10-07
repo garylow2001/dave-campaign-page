@@ -16,8 +16,8 @@
  * The client posts with Content-Type: text/plain, so the request is a CORS
  * "simple request" and Apps Script accepts it without a preflight.
  *
- * V2: Section A (q01–q15) plus Sections B–D (b01–b16, c01–c12, d01–d12) and
- * the derived money profile (archetype, meanings, career orientation).
+ * V2: Section A (q01–q15) plus Sections B–C (b01–b16, c01–c12) and
+ * the derived money profile (archetype + money meanings).
  * Re-deploy as a NEW version after pasting (Deploy → Manage deployments →
  * edit → New version) so the live /exec URL picks up the change. Existing
  * sheets keep old rows; the new HEADERS columns append empty for them.
@@ -63,8 +63,6 @@ const MONEY_ANSWER_IDS = [
   "b09", "b10", "b11", "b12", "b13", "b14", "b15", "b16",
   "c01", "c02", "c03", "c04", "c05", "c06",
   "c07", "c08", "c09", "c10", "c11", "c12",
-  "d01", "d02", "d03", "d04", "d05", "d06",
-  "d07", "d08", "d09", "d10", "d11", "d12",
 ];
 
 function doPost(e) {
@@ -95,7 +93,9 @@ function doPost(e) {
       money && money.mixedProfile ? "mixed profile" : "",
       money ? money.primaryMeaning : "",
       money && money.secondaryMeaning ? money.secondaryMeaning : "",
-      money ? money.careerOrientation : "",
+      // Deprecated: Section D (career) was removed from the quiz. Column kept
+      // so existing rows stay aligned; new submissions store empty strings.
+      "",
       money ? JSON.stringify(money.scores) : "",
       answersSummary(payload.answers, MONEY_ANSWER_IDS),
     ]);

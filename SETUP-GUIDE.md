@@ -62,8 +62,8 @@ lead-capture form.
    ```
    VITE_CALENDLY_URL=https://calendly.com/<dave-username>/<event-name>
    ```
-   (Any Calendly scheduling link works directly as the iframe `src` — the Result
-   page already renders it.) For the deployed site, set the same value as a
+   (Any Calendly scheduling link works — the Result page opens it as a popup
+   when the user clicks "Find out more".) For the deployed site, set the same value as a
    GitHub Actions **variable** `VITE_CALENDLY_URL`.
 6. **Verify**: book a test slot through the deployed Result page; check the
    answers show under Dave's **Meetings → Scheduled Events**.
@@ -147,7 +147,7 @@ will share the Sheet with.
 ## 5. Final end-to-end test checklist (Gary)
 
 1. [ ] `npm run dev` → take the quiz → no "couldn't be saved" banner.
-2. [ ] Row appears in the Google Sheet with all 55 answers + scores.
+2. [ ] Row appears in the Google Sheet with all 43 answers + scores.
 3. [ ] Wrong-token POST is rejected (curl in `apps-script/README.md`).
 4. [ ] Deployed site: book a Calendly slot → booking lands on Dave's calendar +
       the contact no. / DOB answers are visible in Dave's **Meetings → Scheduled Events**.
@@ -159,7 +159,6 @@ will share the Sheet with.
 ## 6. Decisions still open (flag to Dave)
 
 - **DOB**: full date, age band, or drop?
-- **Incentive**: what is it, and on/off at launch? (Env `VITE_SHOW_INCENTIVE`)
 - **Custom domain**: `dave.example.com` vs `…github.io/dave-campaign-page`?
 
 ---

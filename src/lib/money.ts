@@ -10,12 +10,8 @@ export type MoneyConstruct =
   | "freedom"
   | "achievement"
   | "lifestyle"
-  | "stabilityDrive"
-  | "achievementDrive"
-  | "autonomyDrive"
-  | "sacrificeTolerance"
 
-export type MoneySection = "behaviour" | "meaning" | "career"
+export type MoneySection = "behaviour" | "meaning"
 
 export interface MoneyItem {
   id: string
@@ -60,26 +56,10 @@ export const MONEY_MEANING_QUESTIONS: MoneyItem[] = [
   { id: "c12", text: "Being financially successful affects how successful I feel others perceive me to be.", construct: "lifestyle", section: "meaning", reversed: false },
 ]
 
-export const CAREER_QUESTIONS: MoneyItem[] = [
-  { id: "d01", text: "A stable and predictable income is very important when I choose a career.", construct: "stabilityDrive", section: "career", reversed: false },
-  { id: "d02", text: "I would hesitate to leave a secure job even if another opportunity had greater upside.", construct: "stabilityDrive", section: "career", reversed: false },
-  { id: "d03", text: "Job security matters more to me than having the highest possible income.", construct: "stabilityDrive", section: "career", reversed: false },
-  { id: "d04", text: "I am strongly motivated to progress in my career.", construct: "achievementDrive", section: "career", reversed: false },
-  { id: "d05", text: "I regularly think about how I can increase my future earning power.", construct: "achievementDrive", section: "career", reversed: false },
-  { id: "d06", text: "I want to reach a level of career or financial success that is significantly above average.", construct: "achievementDrive", section: "career", reversed: false },
-  { id: "d07", text: "Having control over how I spend my time is extremely important to me.", construct: "autonomyDrive", section: "career", reversed: false },
-  { id: "d08", text: "One reason I want to build wealth is so that I can choose whether or not I continue working.", construct: "autonomyDrive", section: "career", reversed: false },
-  { id: "d09", text: "I would prefer greater independence and flexibility even if it meant giving up some stability.", construct: "autonomyDrive", section: "career", reversed: false },
-  { id: "d10", text: "I am willing to work very hard now if it significantly improves my financial future.", construct: "sacrificeTolerance", section: "career", reversed: false },
-  { id: "d11", text: "I would accept a demanding period in my career if the long-term financial payoff were worthwhile.", construct: "sacrificeTolerance", section: "career", reversed: false },
-  { id: "d12", text: "There are limits to how much personal time I am willing to sacrifice for more money.", construct: "sacrificeTolerance", section: "career", reversed: true },
-]
-
-/** All 40 new items in presentation order: B (behaviour) → C (meaning) → D (career). */
+/** All 28 new items in presentation order: B (behaviour) → C (meaning). */
 export const MONEY_QUESTIONS: MoneyItem[] = [
   ...MONEY_BEHAVIOUR_QUESTIONS,
   ...MONEY_MEANING_QUESTIONS,
-  ...CAREER_QUESTIONS,
 ]
 
 export const CONSTRUCTS: readonly MoneyConstruct[] = [
@@ -91,10 +71,6 @@ export const CONSTRUCTS: readonly MoneyConstruct[] = [
   "freedom",
   "achievement",
   "lifestyle",
-  "stabilityDrive",
-  "achievementDrive",
-  "autonomyDrive",
-  "sacrificeTolerance",
 ]
 
 export type PilotBand = "Lower" | "Moderate" | "Higher"
@@ -125,7 +101,6 @@ export interface MoneyProfile {
   mixedProfile: boolean
   primaryMeaning: MoneyMeaning
   secondaryMeaning: MoneyMeaning | null
-  careerOrientation: CareerOrientation
 }
 
 /** Score Sections B–D from raw 1–7 answers keyed by item id. Missing items are skipped (the UI enforces all-required, so this is defensive). */
@@ -153,7 +128,6 @@ export function scoreMoney(answers: Record<string, number>): MoneyProfile {
 
   const { archetype, mixedProfile } = determineArchetype(scores)
   const { primary, secondary } = determineMoneyMeaning(scores)
-  const careerOrientation = determineCareerOrientation(scores)
 
   return {
     averages,
@@ -163,7 +137,6 @@ export function scoreMoney(answers: Record<string, number>): MoneyProfile {
     mixedProfile,
     primaryMeaning: primary,
     secondaryMeaning: secondary,
-    careerOrientation,
   }
 }
 
@@ -176,9 +149,6 @@ export type MoneyArchetype =
   | "Money Avoider"
   | "Comfort Spender"
   | "Safety Seeker"
-  | "Financial Lone Wolf"
-  | "Independent Builder"
-  | "Growth Chaser"
   | "Steady Builder"
 
 export function determineArchetype(s: NormalizedScores): {
@@ -197,12 +167,6 @@ export function determineArchetype(s: NormalizedScores): {
     return { archetype: "Comfort Spender", mixedProfile: false }
   if (s.moneyAnxiety >= 65 && s.security >= 65 && s.financialConsistency >= 55)
     return { archetype: "Safety Seeker", mixedProfile: false }
-  if (s.freedom >= 60 && s.autonomyDrive >= 60 && s.moneyAvoidance >= 55)
-    return { archetype: "Financial Lone Wolf", mixedProfile: false }
-  if (s.freedom >= 65 && s.autonomyDrive >= 65 && s.financialConsistency >= 60)
-    return { archetype: "Independent Builder", mixedProfile: false }
-  if (s.achievement >= 65 && s.achievementDrive >= 65 && s.moneyAvoidance < 60)
-    return { archetype: "Growth Chaser", mixedProfile: false }
   if (
     s.financialConsistency >= 65 &&
     s.moneyAvoidance < 55 &&
@@ -224,9 +188,6 @@ function closestArchetype(s: NormalizedScores): MoneyArchetype {
     ["Money Avoider", (s.moneyAvoidance + inv(s.financialConsistency)) / 2],
     ["Comfort Spender", (s.emotionalSpending + inv(s.financialConsistency)) / 2],
     ["Safety Seeker", (s.moneyAnxiety + s.security + s.financialConsistency) / 3],
-    ["Financial Lone Wolf", (s.freedom + s.autonomyDrive + s.moneyAvoidance) / 3],
-    ["Independent Builder", (s.freedom + s.autonomyDrive + s.financialConsistency) / 3],
-    ["Growth Chaser", (s.achievement + s.achievementDrive + inv(s.moneyAvoidance)) / 3],
     ["Steady Builder", (s.financialConsistency + inv(s.moneyAvoidance) + inv(s.moneyAnxiety) + inv(s.emotionalSpending)) / 4],
   ]
   candidates.sort((a, b) => b[1] - a[1])
@@ -261,28 +222,6 @@ export function determineMoneyMeaning(s: NormalizedScores): {
 }
 
 // ---------------------------------------------------------------------------
-// Career orientation (Section D)
-// ---------------------------------------------------------------------------
-
-export type CareerOrientation =
-  | "Stability Seeker"
-  | "Ambitious Climber"
-  | "Freedom Builder"
-  | "Balanced Achiever"
-
-export function determineCareerOrientation(s: NormalizedScores): CareerOrientation {
-  if (
-    s.stabilityDrive >= 65 &&
-    s.stabilityDrive > s.achievementDrive &&
-    s.stabilityDrive > s.autonomyDrive
-  )
-    return "Stability Seeker"
-  if (s.achievementDrive >= 65 && s.sacrificeTolerance >= 60) return "Ambitious Climber"
-  if (s.autonomyDrive >= 65 && s.autonomyDrive > s.stabilityDrive) return "Freedom Builder"
-  return "Balanced Achiever"
-}
-
-// ---------------------------------------------------------------------------
 // Report insights — generated from measured scores, never from stereotypes
 // ---------------------------------------------------------------------------
 
@@ -300,9 +239,9 @@ export interface ReportInsights {
 export function pickTensionInsight(s: NormalizedScores): string | null {
   if (s.security >= 60 && s.moneyAnxiety >= 60 && s.financialConsistency >= 60)
     return "You are disciplined, but feeling financially secure may require more than simply accumulating more."
-  if (s.freedom >= 60 && s.autonomyDrive >= 60 && s.financialConsistency >= 60)
+  if (s.freedom >= 60 && s.financialConsistency >= 60)
     return "You appear to use money primarily to create choice and independence."
-  if (s.achievement >= 65 && s.achievementDrive >= 65)
+  if (s.achievement >= 65)
     return "Progress and financial milestones are especially motivating for you."
   if (s.moneyAnxiety >= 60 && s.financialConsistency < 50)
     return "Security matters to you, but your current financial habits may not consistently provide the certainty you are seeking."
@@ -318,12 +257,10 @@ function pickStrength(s: NormalizedScores): string {
     return "You bring real consistency to your financial habits — you can set a plan and stay with it even when the month gets busy."
   if (s.security >= 65 && s.moneyAnxiety >= 60)
     return "You are highly aware of the importance of financial security and can become very motivated to regain control."
-  if (s.freedom >= 65 && s.autonomyDrive >= 65)
-    return "You use money deliberately and purposefully — as a tool to protect your independence and future choices."
-  if (s.achievement >= 65 || s.achievementDrive >= 65)
+  if (s.freedom >= 65)
+    return "You have a clear sense of what money is for in your life — choice and independence — and you protect that purpose."
+  if (s.achievement >= 65)
     return "You set ambitious targets and take real satisfaction in hitting financial milestones."
-  if (s.sacrificeTolerance >= 60)
-    return "You are willing to put in sustained effort now when the long-term payoff is worthwhile."
   if (s.moneyAvoidance < 55)
     return "You are willing to face financial matters directly rather than putting them off."
   return "You have a clear sense of what money is for in your life, which is a solid starting point for shaping it further."
@@ -351,12 +288,6 @@ const ARCHETYPE_DESCRIPTIONS: Record<MoneyArchetype, string> = {
     "Your answers suggest spending is relatively sensitive to how you feel — it may function as a reward after hard work, a celebration, or relief on a difficult day. This isn't about a lack of awareness; the emotional payoff in the moment can simply outweigh the plan.",
   "Safety Seeker":
     "You appear generally responsible with money — yet your answers suggest it can still be difficult to feel that there is “enough”. The drive for security is a strength, even if reassurance doesn't always arrive with the next milestone.",
-  "Financial Lone Wolf":
-    "Your answers point to a strong preference for self-reliance and control around money. You likely prefer solving financial matters alone and may be reluctant to depend on others — capable, but potentially carrying the full weight yourself.",
-  "Independent Builder":
-    "Your answers suggest you use money deliberately to create choice, independence and control over your future time. Financial decisions appear to be guided by what they buy you in freedom, not just what they accumulate.",
-  "Growth Chaser":
-    "Financial progress, income growth and milestones appear genuinely motivating to you. Your answers suggest you enjoy setting increasingly ambitious targets — the sense of moving forward matters as much as the number itself.",
   "Steady Builder":
     "Your answers suggest you generally manage money consistently, without large emotional swings or repeated avoidance. That steadiness is a real asset — the interesting question is what it is building towards.",
 }

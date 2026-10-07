@@ -6,7 +6,6 @@ import {
   scoreMoney,
   determineArchetype,
   determineMoneyMeaning,
-  determineCareerOrientation,
   pickTensionInsight,
   type NormalizedScores,
 } from "./money"
@@ -22,10 +21,6 @@ function baseScores(overrides: Partial<NormalizedScores> = {}): NormalizedScores
     freedom: 50,
     achievement: 50,
     lifestyle: 50,
-    stabilityDrive: 50,
-    achievementDrive: 50,
-    autonomyDrive: 50,
-    sacrificeTolerance: 50,
     ...overrides,
   }
 }
@@ -41,16 +36,15 @@ function answersForScore(target0to100: number): Record<string, number> {
 }
 
 describe("money question bank", () => {
-  it("has 40 items: 16 behaviour + 12 meaning + 12 career", () => {
-    expect(MONEY_QUESTIONS).toHaveLength(40)
+  it("has 28 items: 16 behaviour + 12 meaning", () => {
+    expect(MONEY_QUESTIONS).toHaveLength(28)
     expect(MONEY_QUESTIONS.filter((q) => q.section === "behaviour")).toHaveLength(16)
     expect(MONEY_QUESTIONS.filter((q) => q.section === "meaning")).toHaveLength(12)
-    expect(MONEY_QUESTIONS.filter((q) => q.section === "career")).toHaveLength(12)
   })
 
-  it("marks b08, b12, b16 and d12 as reverse-scored", () => {
+  it("marks b08, b12 and b16 as reverse-scored", () => {
     const reversed = new Set(MONEY_QUESTIONS.filter((q) => q.reversed).map((q) => q.id))
-    expect(reversed).toEqual(new Set(["b08", "b12", "b16", "d12"]))
+    expect(reversed).toEqual(new Set(["b08", "b12", "b16"]))
   })
 })
 
@@ -89,7 +83,7 @@ describe("scoreMoney", () => {
   it("tolerates missing answers without NaN", () => {
     const answers = answersForScore(60)
     delete answers["b01"]
-    delete answers["d12"]
+    delete answers["c12"]
     const p = scoreMoney(answers)
     for (const v of Object.values(p.scores)) {
       expect(Number.isNaN(v)).toBe(false)
@@ -127,34 +121,7 @@ describe("determineArchetype (priority order)", () => {
     expect(archetype).toBe("Safety Seeker")
   })
 
-  it("5. Financial Lone Wolf", () => {
-    const { archetype } = determineArchetype(
-      baseScores({ freedom: 80, autonomyDrive: 80, moneyAvoidance: 70, financialConsistency: 40, moneyAnxiety: 40 }),
-    )
-    // Avoider rule (priority 2) also matches here (avoidance 70 + consistency 40)
-    // so it must win — use lower avoidance that still meets Lone Wolf:
-    void archetype
-    const lone = determineArchetype(
-      baseScores({ freedom: 80, autonomyDrive: 80, moneyAvoidance: 58, financialConsistency: 60, moneyAnxiety: 40, emotionalSpending: 40 }),
-    )
-    expect(lone.archetype).toBe("Financial Lone Wolf")
-  })
-
-  it("6. Independent Builder", () => {
-    const { archetype } = determineArchetype(
-      baseScores({ freedom: 80, autonomyDrive: 80, financialConsistency: 70, moneyAvoidance: 40, moneyAnxiety: 40, emotionalSpending: 40 }),
-    )
-    expect(archetype).toBe("Independent Builder")
-  })
-
-  it("7. Growth Chaser", () => {
-    const { archetype } = determineArchetype(
-      baseScores({ achievement: 80, achievementDrive: 80, moneyAvoidance: 40, moneyAnxiety: 40, emotionalSpending: 40, financialConsistency: 60 }),
-    )
-    expect(archetype).toBe("Growth Chaser")
-  })
-
-  it("8. Steady Builder", () => {
+  it("5. Steady Builder", () => {
     const { archetype } = determineArchetype(
       baseScores({ financialConsistency: 80, moneyAvoidance: 30, moneyAnxiety: 40, emotionalSpending: 40 }),
     )
@@ -177,25 +144,6 @@ describe("determineMoneyMeaning", () => {
     const r2 = determineMoneyMeaning(baseScores({ security: 80, freedom: 54 }))
     expect(r2.primary).toBe("Security")
     expect(r2.secondary).toBeNull()
-  })
-})
-
-describe("determineCareerOrientation", () => {
-  it("Stability Seeker needs >= 65 and strictly highest", () => {
-    expect(determineCareerOrientation(baseScores({ stabilityDrive: 80, achievementDrive: 70, autonomyDrive: 70 }))).toBe("Stability Seeker")
-    expect(determineCareerOrientation(baseScores({ stabilityDrive: 80, achievementDrive: 80, autonomyDrive: 50 }))).not.toBe("Stability Seeker")
-  })
-
-  it("Ambitious Climber needs achievement drive + sacrifice tolerance", () => {
-    expect(determineCareerOrientation(baseScores({ achievementDrive: 80, sacrificeTolerance: 70 }))).toBe("Ambitious Climber")
-  })
-
-  it("Freedom Builder needs autonomy >= 65 and above stability", () => {
-    expect(determineCareerOrientation(baseScores({ autonomyDrive: 80, stabilityDrive: 60 }))).toBe("Freedom Builder")
-  })
-
-  it("falls back to Balanced Achiever", () => {
-    expect(determineCareerOrientation(baseScores())).toBe("Balanced Achiever")
   })
 })
 
