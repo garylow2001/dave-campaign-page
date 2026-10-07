@@ -147,7 +147,7 @@ will share the Sheet with.
 ## 5. Final end-to-end test checklist (Gary)
 
 1. [ ] `npm run dev` → take the quiz → no "couldn't be saved" banner.
-2. [ ] Row appears in the Google Sheet with all 15 answers + scores + free-form text.
+2. [ ] Row appears in the Google Sheet with all 55 answers + scores.
 3. [ ] Wrong-token POST is rejected (curl in `apps-script/README.md`).
 4. [ ] Deployed site: book a Calendly slot → booking lands on Dave's calendar +
       the contact no. / DOB answers are visible in Dave's **Meetings → Scheduled Events**.
@@ -160,7 +160,6 @@ will share the Sheet with.
 
 - **DOB**: full date, age band, or drop?
 - **Incentive**: what is it, and on/off at launch? (Env `VITE_SHOW_INCENTIVE`)
-- **Free-form questions**: keep as optional, or make required?
 - **Custom domain**: `dave.example.com` vs `…github.io/dave-campaign-page`?
 
 ---

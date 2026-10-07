@@ -42,7 +42,7 @@ VITE_SHEETS_TOKEN=<the same random string>
 ```bash
 curl -X POST 'https://script.google.com/macros/s/<...>/exec' \
   -H 'Content-Type: text/plain' \
-  -d '{"token":"<token>","submittedAt":"2026-08-15T00:00:00Z","result":{"primary":"Secure","secondary":null,"anxiety":2,"avoidance":2,"confidence":4,"mixed":false,"anxietyLevel":"low","avoidanceLevel":"low"},"answers":{"q01":2},"moneyViews":"test","moneyAssociation":"test"}'
+  -d '{"token":"<token>","submittedAt":"2026-08-15T00:00:00Z","result":{"primary":"Secure","secondary":null,"anxiety":2,"avoidance":2,"confidence":4,"mixed":false,"anxietyLevel":"low","avoidanceLevel":"low"},"answers":{"q01":2}}'
 ```
 
 You should get `{"ok":true}` and a row (with headers) in the sheet.

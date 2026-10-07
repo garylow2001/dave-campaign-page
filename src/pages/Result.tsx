@@ -3,26 +3,33 @@ import { Link, useNavigate } from "react-router-dom"
 import { AnimatePresence, motion } from "motion/react"
 import { AlertTriangle, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { useQuiz } from "@/context/quiz"
 import { ResultAnalyzer } from "@/components/motion/ResultAnalyzer"
 import { HoverLift } from "@/components/motion/HoverLift"
 import { fadeUp, staggerContainer } from "@/components/motion/variants"
+import type { MoneyConstruct } from "@/lib/money"
 import {
   STYLE_COPY,
   MIXED_NOTE,
   DISCLAIMER,
-  SECONDARY_LABEL,
   INCENTIVE_BANNER,
+  PILOT_INVITATION,
+  buildProfileNarrative,
 } from "@/lib/copy"
 
 const CALENDLY_URL = import.meta.env.VITE_CALENDLY_URL ?? ""
 const SHOW_INCENTIVE = import.meta.env.VITE_SHOW_INCENTIVE === "true"
 
-function ScoreRow({ label, value }: { label: string; value: number }) {
+const MONEY_BEHAVIOUR_ROWS: { construct: MoneyConstruct; label: string }[] = [
+  { construct: "moneyAnxiety", label: "Money Anxiety" },
+  { construct: "moneyAvoidance", label: "Money Avoidance" },
+  { construct: "emotionalSpending", label: "Emotional Spending" },
+  { construct: "financialConsistency", label: "Financial Consistency" },
+]
+
+function ScoreRow7({ label, value }: { label: string; value: number }) {
   return (
     <div className="space-y-1.5">
       <div className="flex items-baseline justify-between">
@@ -34,9 +41,33 @@ function ScoreRow({ label, value }: { label: string; value: number }) {
   )
 }
 
+function ScoreRow100({
+  label,
+  value,
+  band,
+}: {
+  label: string
+  value: number
+  band: string
+}) {
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-baseline justify-between">
+        <span className="text-sm font-medium">{label}</span>
+        <span className="text-sm text-muted-foreground">
+          {Math.round(value)} · {band}
+        </span>
+      </div>
+      <Progress value={value} />
+    </div>
+  )
+}
+
 export default function Result() {
-  const { result, submitState, retrySubmit, resetQuiz, justCompleted, markResultSeen } = useQuiz()
+  const { result, moneyResult, submitState, retrySubmit, resetQuiz, justCompleted, markResultSeen } =
+    useQuiz()
   const navigate = useNavigate()
+  const bookingRef = useRef<HTMLDivElement | null>(null)
 
   // Play the analyzer exactly once per fresh completion. Capture the flag on
   // first render so React 19 StrictMode's simulated remount can't replay it,
@@ -71,8 +102,13 @@ export default function Result() {
     )
   }
 
-  const style = STYLE_COPY[result.primary]
-  const showSecondary = result.secondary !== null && (result.mixed || result.confidence < 2)
+  const narrative = moneyResult ? buildProfileNarrative(result.primary, moneyResult) : null
+  // Stored sessions from before the money layers existed have no moneyResult.
+  const legacyStyle = STYLE_COPY[result.primary]
+
+  const scrollToBooking = () => {
+    bookingRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+  }
 
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 px-4 py-10">
@@ -92,58 +128,65 @@ export default function Result() {
               variants={staggerContainer(0.08)}
               initial="hidden"
               animate="show"
-              className="flex flex-col gap-6"
+              className="flex flex-col gap-8"
             >
               <motion.div variants={fadeUp} className="space-y-2 text-center">
-                <h1 className="text-3xl font-bold">Thanks for taking the survey</h1>
-                <p className="text-muted-foreground">
-                  Here's how your attachment style shows up in your relationship with money.
+                <p className="text-xs font-semibold tracking-widest text-primary uppercase">
+                  Your AttachedToMoney profile
                 </p>
+                <h1 className="text-3xl font-bold">What your answers suggest</h1>
               </motion.div>
 
-              <motion.div variants={fadeUp}>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <Badge className="w-fit text-sm">{result.primary}</Badge>
-                    <CardTitle className="text-2xl">{style.heading}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <motion.div
-                      variants={staggerContainer(0.06)}
-                      initial="hidden"
-                      animate="show"
-                      className="space-y-4"
-                    >
-                      <motion.p variants={fadeUp} className="text-muted-foreground">
-                        {style.blurb}
-                      </motion.p>
-                      <motion.div variants={fadeUp}>
-                        <Separator />
-                      </motion.div>
-                      <motion.div variants={fadeUp} className="space-y-3">
-                        <ScoreRow label="Attachment anxiety" value={result.anxiety} />
-                        <ScoreRow label="Attachment avoidance" value={result.avoidance} />
-                      </motion.div>
-                      {result.mixed && (
-                        <motion.p
-                          variants={fadeUp}
-                          className="rounded-lg bg-muted p-3 text-sm text-muted-foreground"
-                        >
-                          {MIXED_NOTE}
-                        </motion.p>
-                      )}
-                      {showSecondary && result.secondary && (
-                        <motion.p variants={fadeUp} className="text-sm text-muted-foreground">
-                          {SECONDARY_LABEL}: {result.secondary}
-                        </motion.p>
-                      )}
-                      <motion.p variants={fadeUp} className="text-xs text-muted-foreground">
-                        {DISCLAIMER}
-                      </motion.p>
-                    </motion.div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+              {/* One flowing read: attachment, money meaning, how it shows up. */}
+              {narrative ? (
+                <motion.div variants={fadeUp} className="space-y-4 leading-relaxed">
+                  <p className="text-lg">{narrative[0]}</p>
+                  <p className="text-muted-foreground">{narrative[1]}</p>
+                  {result.mixed && (
+                    <p className="text-sm text-muted-foreground">{MIXED_NOTE}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">{DISCLAIMER}</p>
+                </motion.div>
+              ) : (
+                <motion.div variants={fadeUp} className="space-y-4 leading-relaxed">
+                  <p className="text-lg">{legacyStyle.heading}.</p>
+                  <p className="text-muted-foreground">{legacyStyle.blurb}</p>
+                </motion.div>
+              )}
+
+              {/* Locked score preview — the full breakdown is for the session. */}
+              {moneyResult && (
+                <motion.div variants={fadeUp}>
+                  <Card className="relative overflow-hidden">
+                    <CardContent className="p-6">
+                      <div aria-hidden="true" className="space-y-3 blur-[6px] select-none">
+                        <ScoreRow7 label="Attachment anxiety" value={result.anxiety} />
+                        <ScoreRow7 label="Attachment avoidance" value={result.avoidance} />
+                        {MONEY_BEHAVIOUR_ROWS.map((row) => (
+                          <ScoreRow100
+                            key={row.construct}
+                            label={row.label}
+                            value={moneyResult.scores[row.construct]}
+                            band={moneyResult.bands[row.construct]}
+                          />
+                        ))}
+                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center bg-background/60">
+                        <div className="space-y-3 px-6 text-center">
+                          <p className="text-lg font-semibold">Your full breakdown is ready</p>
+                          <p className="mx-auto max-w-sm text-sm text-muted-foreground">
+                            Every score, line by line — we go through it together and check
+                            what actually rings true for you.
+                          </p>
+                          <Button size="lg" onClick={scrollToBooking}>
+                            Find out more
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
 
               {submitState === "error" && (
                 <motion.div
@@ -159,13 +202,17 @@ export default function Result() {
                 </motion.div>
               )}
 
-              <motion.div variants={fadeUp}>
+              {/* Pilot-stage conversion: Profile Review invitation */}
+              <motion.div ref={bookingRef} variants={fadeUp} className="scroll-mt-6">
                 <Card>
                   <CardContent className="space-y-4 p-6">
                     <div>
-                      <h2 className="text-xl font-semibold">Want a detailed report?</h2>
-                      <p className="mt-1 text-muted-foreground">
-                        Schedule a time to meet and we'll go through your full report together.
+                      <h2 className="text-xl font-semibold">{PILOT_INVITATION.heading}</h2>
+                      <p className="mt-2 text-muted-foreground">{PILOT_INVITATION.intro}</p>
+                      <p className="mt-2 text-muted-foreground">{PILOT_INVITATION.invite}</p>
+                      <p className="mt-2 text-muted-foreground">{PILOT_INVITATION.noPrep}</p>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        {PILOT_INVITATION.secondSession}
                       </p>
                     </div>
                     {SHOW_INCENTIVE && (
@@ -178,11 +225,11 @@ export default function Result() {
                         src={CALENDLY_URL}
                         className="h-[700px] w-full rounded-lg border"
                         frameBorder="0"
-                        title="Schedule a meeting"
+                        title="Book your Profile Review session"
                       />
                     ) : (
                       <p className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
-                        [Calendly embed will appear here — set{" "}
+                        [{PILOT_INVITATION.cta} — Calendly embed will appear here; set{" "}
                         <code>VITE_CALENDLY_URL</code> in .env]
                       </p>
                     )}

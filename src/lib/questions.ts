@@ -36,6 +36,43 @@ export const QUESTIONS: QuizItem[] = [
 export const LIKERT_MIN = 1
 export const LIKERT_MAX = 7
 
+/** Quiz sections in presentation order (V2 brief §2). Section A is the existing relationship-attachment block; B–D are new. */
+export interface QuizSectionMeta {
+  key: string
+  eyebrow: string
+  title: string
+  intro: string
+}
+
+export const QUIZ_SECTIONS: QuizSectionMeta[] = [
+  {
+    key: "attachment",
+    eyebrow: "Section A · Relationship attachment",
+    title: "How do you feel in close relationships?",
+    intro:
+      "Rate each statement 1 (strongly disagree) to 7 (strongly agree). Your answers jump to the next question automatically — you can scroll back to change any.",
+  },
+  {
+    key: "behaviour",
+    eyebrow: "Section B · Money behaviour",
+    title: "How do you behave and feel around money?",
+    intro: "Same 1–7 scale. There are no right answers — go with what is most true for you.",
+  },
+  {
+    key: "meaning",
+    eyebrow: "Section C · What money means",
+    title: "What does money represent to you?",
+    intro:
+      "This section explores why money matters to you — not how competent you are with it. Same 1–7 scale.",
+  },
+  {
+    key: "career",
+    eyebrow: "Section D · Career & money drive",
+    title: "How do money and career mix for you?",
+    intro: "Final scored section — how money, security and autonomy influence your career choices.",
+  },
+]
+
 /** "1 = Strongly disagree … 7 = Strongly agree" labels shown per value */
 export const LIKERT_LABELS: Record<number, string> = {
   1: "Strongly disagree",
@@ -55,7 +92,7 @@ export const LIKERT_LABELS: Record<number, string> = {
  */
 export function findSkippedIndices(
   answers: Record<string, number>,
-  questions: readonly QuizItem[] = QUESTIONS,
+  questions: readonly { id: string }[] = QUESTIONS,
 ): number[] {
   let lastAnswered = -1
   for (let i = 0; i < questions.length; i++) {
@@ -69,16 +106,3 @@ export function findSkippedIndices(
   return skipped
 }
 
-/** "How do you see money?" free-form questions (kept per brief) */
-export const FREE_FORM_QUESTIONS: { id: string; label: string; placeholder: string }[] = [
-  {
-    id: "moneyViews",
-    label: "How do you see money?",
-    placeholder: "I see money as a tool for freedom, security, and opportunity.",
-  },
-  {
-    id: "moneyAssociation",
-    label: "What do you associate money with?",
-    placeholder: "Freedom, stress, safety, status…",
-  },
-]

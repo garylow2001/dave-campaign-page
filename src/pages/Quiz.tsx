@@ -5,12 +5,11 @@ import { motion } from "motion/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { LikertRating } from "@/components/LikertRating"
 import { HoverLift } from "@/components/motion/HoverLift"
 import { cn } from "@/lib/utils"
-import { QUESTIONS, FREE_FORM_QUESTIONS, findSkippedIndices } from "@/lib/questions"
+import { QUESTIONS, QUIZ_SECTIONS, findSkippedIndices } from "@/lib/questions"
+import { MONEY_BEHAVIOUR_QUESTIONS, MONEY_MEANING_QUESTIONS, CAREER_QUESTIONS } from "@/lib/money"
 import { useQuiz } from "@/context/quiz"
 
 const cardReveal = {
@@ -20,23 +19,49 @@ const cardReveal = {
   transition: { duration: 0.35, ease: "easeOut" as const },
 }
 
+interface SectionBlock {
+  meta: (typeof QUIZ_SECTIONS)[number]
+  items: { id: string; text: string }[]
+  offset: number
+}
+
 export default function Quiz() {
-  const { answers, freeForm, setAnswer, setFreeForm, completeQuiz } = useQuiz()
+  const { answers, setAnswer, completeQuiz } = useQuiz()
   const navigate = useNavigate()
 
   const questionRefs = useRef<(HTMLDivElement | null)[]>([])
-  const freeFormRef = useRef<HTMLDivElement | null>(null)
+
+  const sections: SectionBlock[] = useMemo(() => {
+    const blocks = [
+      { meta: QUIZ_SECTIONS[0], items: QUESTIONS },
+      { meta: QUIZ_SECTIONS[1], items: MONEY_BEHAVIOUR_QUESTIONS },
+      { meta: QUIZ_SECTIONS[2], items: MONEY_MEANING_QUESTIONS },
+      { meta: QUIZ_SECTIONS[3], items: CAREER_QUESTIONS },
+    ]
+    let offset = 0
+    return blocks.map((b) => {
+      const withOffset = { ...b, offset }
+      offset += b.items.length
+      return withOffset
+    })
+  }, [])
+
+  const allItems = useMemo(() => sections.flatMap((s) => s.items), [sections])
+  const totalCount = allItems.length
 
   // Questions passed over: an earlier question left unanswered while a later
   // one was answered (e.g. answering q6 with q4+q5 blank flags those two).
-  const skippedIndices = useMemo(() => findSkippedIndices(answers), [answers])
+  // Section A keeps its stable `q01…` ids, so reuse its skipped-index helper
+  // on the combined id list for the sticky chip.
+  const allIds = useMemo(() => allItems.map((q) => q.id), [allItems])
+  const skippedIndices = useMemo(() => findSkippedIndices(answers, allItems), [answers, allItems])
   const skippedSet = useMemo(() => new Set(skippedIndices), [skippedIndices])
 
-  const answeredCount = QUESTIONS.filter((q) => answers[q.id] !== undefined).length
-  const progress = Math.round((answeredCount / QUESTIONS.length) * 100)
+  const answeredCount = allItems.filter((q) => answers[q.id] !== undefined).length
+  const progress = Math.round((answeredCount / totalCount) * 100)
 
   // The submit button stays disabled until every question is answered.
-  const allAnswered = answeredCount === QUESTIONS.length
+  const allAnswered = answeredCount === totalCount
 
   // Aggregate label shown on every skipped card + the sticky chip.
   const skippedLabel =
@@ -48,19 +73,15 @@ export default function Quiz() {
     questionRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "center" })
   }
 
-  /** On a fresh answer, snap to the next unanswered question (or the free-form section). */
+  /** On a fresh answer, snap to the next unanswered question. */
   const handleAnswer = (id: string, value: number, index: number) => {
     const isNewAnswer = answers[id] === undefined
     setAnswer(id, value)
     if (!isNewAnswer) return
 
-    const nextIndex = QUESTIONS.findIndex(
-      (q, i) => i > index && answers[q.id] === undefined,
-    )
+    const nextIndex = allIds.findIndex((qid, i) => i > index && answers[qid] === undefined)
     if (nextIndex !== -1) {
       scrollToQuestion(nextIndex)
-    } else {
-      freeFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
     }
   }
 
@@ -76,7 +97,7 @@ export default function Quiz() {
         <div className="flex items-baseline justify-between text-sm text-muted-foreground">
           <span>Your progress</span>
           <span>
-            {answeredCount} of {QUESTIONS.length} answered
+            {answeredCount} of {totalCount} answered
           </span>
         </div>
         <Progress value={progress} className="mt-2" aria-label="Quiz progress" />
@@ -97,81 +118,65 @@ export default function Quiz() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
       >
-        <h1 className="text-2xl font-bold tracking-tight">
-          How do you feel in close relationships?
-        </h1>
-        <p className="-mt-3 text-sm text-muted-foreground">
-          Rate each statement 1 (strongly disagree) to 7 (strongly agree). Your answers
-          jump to the next question automatically — you can scroll back to change any.
-        </p>
+        {sections.map((section) => (
+          <div key={section.meta.key} className="space-y-5">
+            <div className="space-y-1 pt-2">
+              <p className="text-xs font-semibold tracking-widest text-primary uppercase">
+                {section.meta.eyebrow}
+              </p>
+              <h1 className="text-2xl font-bold tracking-tight">{section.meta.title}</h1>
+              <p className="text-sm text-muted-foreground">{section.meta.intro}</p>
+            </div>
 
-        {QUESTIONS.map((q, i) => {
-          const skipped = skippedSet.has(i)
-          return (
-            <motion.div
-              key={q.id}
-              ref={(el) => {
-                questionRefs.current[i] = el
-              }}
-              {...cardReveal}
-            >
-              <Card className={skipped ? "ring-2 ring-warning/50" : undefined}>
-                <CardContent className="space-y-5 p-5 sm:p-6">
-                  <div className="flex items-baseline gap-3">
-                    <span
-                      className={cn(
-                        "shrink-0 rounded-md px-2 py-0.5 text-xs font-medium",
-                        skipped
-                          ? "bg-warning/15 text-warningForeground"
-                          : "bg-muted text-muted-foreground",
+            {section.items.map((q, i) => {
+              const globalIndex = section.offset + i
+              const skipped = skippedSet.has(globalIndex)
+              return (
+                <motion.div
+                  key={q.id}
+                  ref={(el) => {
+                    questionRefs.current[globalIndex] = el
+                  }}
+                  {...cardReveal}
+                >
+                  <Card className={skipped ? "ring-2 ring-warning/50" : undefined}>
+                    <CardContent className="space-y-5 p-5 sm:p-6">
+                      <div className="flex items-baseline gap-3">
+                        <span
+                          className={cn(
+                            "shrink-0 rounded-md px-2 py-0.5 text-xs font-medium",
+                            skipped
+                              ? "bg-warning/15 text-warningForeground"
+                              : "bg-muted text-muted-foreground",
+                          )}
+                        >
+                          {globalIndex + 1}
+                        </span>
+                        <h2 className="text-lg font-semibold leading-snug">{q.text}</h2>
+                      </div>
+                      {skipped && (
+                        <motion.button
+                          type="button"
+                          onClick={() => scrollToQuestion(globalIndex)}
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.25 }}
+                          className="flex w-fit items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warningForeground hover:bg-warning/25"
+                        >
+                          <ArrowUp className="size-3.5" /> {skippedLabel}
+                        </motion.button>
                       )}
-                    >
-                      {i + 1}
-                    </span>
-                    <h2 className="text-lg font-semibold leading-snug">{q.text}</h2>
-                  </div>
-                  {skipped && (
-                    <motion.button
-                      type="button"
-                      onClick={() => scrollToQuestion(i)}
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.25 }}
-                      className="flex w-fit items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warningForeground hover:bg-warning/25"
-                    >
-                      <ArrowUp className="size-3.5" /> {skippedLabel}
-                    </motion.button>
-                  )}
-                  <LikertRating
-                    value={answers[q.id]}
-                    onChange={(v) => handleAnswer(q.id, v, i)}
-                  />
-                </CardContent>
-              </Card>
-            </motion.div>
-          )
-        })}
-
-        {/* Free-form section — the target for the final snap */}
-        <motion.div ref={freeFormRef} {...cardReveal}>
-          <Card>
-            <CardContent className="space-y-6 p-5 sm:p-6">
-              <h2 className="text-xl font-semibold">How do you see money?</h2>
-              {FREE_FORM_QUESTIONS.map((q) => (
-                <div key={q.id} className="space-y-2">
-                  <Label htmlFor={q.id}>{q.label}</Label>
-                  <Textarea
-                    id={q.id}
-                    value={freeForm[q.id as keyof typeof freeForm]}
-                    onChange={(e) => setFreeForm(q.id as keyof typeof freeForm, e.target.value)}
-                    placeholder={q.placeholder}
-                    rows={3}
-                  />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </motion.div>
+                      <LikertRating
+                        value={answers[q.id]}
+                        onChange={(v) => handleAnswer(q.id, v, globalIndex)}
+                      />
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )
+            })}
+          </div>
+        ))}
 
         <div className="pb-10 text-center">
           <HoverLift disabled={!allAnswered}>
@@ -187,7 +192,7 @@ export default function Quiz() {
           </HoverLift>
           {!allAnswered && (
             <p className="mt-2 text-sm text-muted-foreground">
-              Answer all {QUESTIONS.length} questions to get your result.
+              Answer all {totalCount} questions to get your result.
             </p>
           )}
         </div>

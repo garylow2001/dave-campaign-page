@@ -5,8 +5,9 @@ import tailwindcss from "@tailwindcss/vite"
 
 // https://vite.dev/config/
 export default defineConfig({
-  // GitHub Pages project site → served from /dave-campaign-page/
-  base: "/dave-campaign-page/",
+  // Served from the site root (Cloudflare Pages). The router basename in
+  // main.tsx follows BASE_URL automatically.
+  base: "/",
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {

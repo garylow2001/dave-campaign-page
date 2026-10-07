@@ -1,0 +1,3 @@
+# Cloudflare Pages SPA fallback — serve index.html for all app routes
+# (lets /quiz and /result deep-link instead of 404ing).
+/*  /index.html  200

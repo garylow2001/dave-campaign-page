@@ -1,12 +1,12 @@
 import type { QuizResult } from "./attachment"
+import type { MoneyProfile } from "./money"
 
 export type SubmitState = "idle" | "sending" | "sent" | "error"
 
 export interface SubmissionPayload {
   answers: Record<string, number>
   result: QuizResult
-  moneyViews: string
-  moneyAssociation: string
+  moneyResult: MoneyProfile | null
   submittedAt: string
 }
 

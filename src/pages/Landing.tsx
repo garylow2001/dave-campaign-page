@@ -2,7 +2,6 @@ import { Link } from "react-router-dom"
 import { ArrowRight } from "lucide-react"
 import { motion } from "motion/react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { HoverLift } from "@/components/motion/HoverLift"
 import { fadeUp, staggerContainer } from "@/components/motion/variants"
 
@@ -22,26 +21,26 @@ export default function Landing() {
           variants={fadeUp}
           className="inline-flex items-center rounded-full border bg-card px-3 py-1 text-xs font-medium text-muted-foreground"
         >
-          Free · 2-minute quiz
+          Free · 5-minute quiz
         </motion.span>
 
         <motion.h1
           variants={fadeUp}
           className="text-4xl font-bold tracking-tight text-balance sm:text-5xl"
         >
-          Find out how your{" "}
+          How are you{" "}
           <span className="bg-gradient-to-r from-brand-from to-brand-to bg-clip-text text-transparent">
-            attachment style
-          </span>{" "}
-          affects your relationship with money
+            AttachedToMoney?
+          </span>
         </motion.h1>
 
         <motion.p
           variants={fadeUp}
           className="mx-auto max-w-xl text-lg text-muted-foreground"
         >
-          A short quiz that reveals how you hold closeness and trust — and what that means for how you
-          earn, save, and spend.
+          The way you relate to people may influence the way you relate to money too.
+          Discover what drives your financial behaviour, what money represents to you,
+          and the patterns that may be shaping the decisions you make.
         </motion.p>
 
         <motion.div variants={fadeUp}>
@@ -54,28 +53,13 @@ export default function Landing() {
             </Link>
           </HoverLift>
         </motion.div>
-      </motion.div>
 
-      <motion.div
-        className="mt-10 w-full max-w-2xl text-left"
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-      >
-        <Card>
-          <CardContent className="space-y-3 p-6">
-            <h2 className="text-lg font-semibold">Who we are</h2>
-            <p className="text-muted-foreground">
-              [Who we are — Dave's intro: credentials, what you help people with, and one honest line
-              about money + psychology.]
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Your quiz answers are used only to generate your report. We don't ask for contact details
-              on this page — if you'd like a detailed breakdown, you can book a chat at the end.
-            </p>
-          </CardContent>
-        </Card>
+        <motion.p
+          variants={fadeUp}
+          className="mx-auto max-w-xl text-sm text-muted-foreground"
+        >
+          A 5-minute assessment exploring attachment, money habits and career motivations.
+        </motion.p>
       </motion.div>
     </main>
   )

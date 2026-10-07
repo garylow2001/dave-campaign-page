@@ -38,9 +38,9 @@ describe("findSkippedIndices", () => {
     )
   })
 
-  it("is unaffected by free-form keys (not part of the quiz items)", () => {
-    const withFreeForm = answersFor(["q01"])
-    ;(withFreeForm as Record<string, unknown>).moneyViews = "freedom"
-    expect(findSkippedIndices(withFreeForm)).toEqual([])
+  it("ignores unknown extra keys (never part of the quiz items)", () => {
+    const withExtra = answersFor(["q01"])
+    ;(withExtra as Record<string, unknown>).someExternalKey = "freedom"
+    expect(findSkippedIndices(withExtra)).toEqual([])
   })
 })

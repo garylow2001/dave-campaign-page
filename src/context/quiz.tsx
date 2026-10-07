@@ -1,19 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react"
 import { scoreQuiz, type QuizResult } from "@/lib/attachment"
+import { scoreMoney, type MoneyProfile } from "@/lib/money"
 import { submitResponse, type SubmitState } from "@/lib/submit"
 
-export interface FreeForm {
-  moneyViews: string
-  moneyAssociation: string
-}
-
-const EMPTY_FREEFORM: FreeForm = { moneyViews: "", moneyAssociation: "" }
 const STORAGE_KEY = "dave-quiz-state"
 
 interface PersistedState {
   answers: Record<string, number>
-  freeForm: FreeForm
   result: QuizResult | null
+  moneyResult: MoneyProfile | null
 }
 
 function loadState(): PersistedState {
@@ -23,26 +18,25 @@ function loadState(): PersistedState {
       const parsed = JSON.parse(raw) as Partial<PersistedState>
       return {
         answers: parsed.answers ?? {},
-        freeForm: { ...EMPTY_FREEFORM, ...parsed.freeForm },
         result: parsed.result ?? null,
+        moneyResult: parsed.moneyResult ?? null,
       }
     }
   } catch {
     // corrupt / unavailable storage — start fresh
   }
-  return { answers: {}, freeForm: EMPTY_FREEFORM, result: null }
+  return { answers: {}, result: null, moneyResult: null }
 }
 
 interface QuizContextValue {
   answers: Record<string, number>
-  freeForm: FreeForm
   result: QuizResult | null
+  moneyResult: MoneyProfile | null
   submitState: SubmitState
   /** True only right after a fresh completion — drives the Result-page reveal. In-memory, never persisted. */
   justCompleted: boolean
   setAnswer: (id: string, value: number) => void
-  setFreeForm: (id: keyof FreeForm, value: string) => void
-  /** Score the answers, stash the result, and fire the (non-blocking) save. */
+  /** Score the answers, stash the results, and fire the (non-blocking) save. */
   completeQuiz: () => void
   /** Consume the fresh-completion flag once the Result page has handled it. */
   markResultSeen: () => void
@@ -55,57 +49,61 @@ const QuizContext = createContext<QuizContextValue | null>(null)
 export function QuizProvider({ children }: { children: ReactNode }) {
   const initial = loadState()
   const [answers, setAnswers] = useState<Record<string, number>>(initial.answers)
-  const [freeForm, setFreeFormState] = useState<FreeForm>(initial.freeForm)
   const [result, setResult] = useState<QuizResult | null>(initial.result)
+  const [moneyResult, setMoneyResult] = useState<MoneyProfile | null>(initial.moneyResult)
   const [submitState, setSubmitState] = useState<SubmitState>(initial.result ? "sent" : "idle")
   const [justCompleted, setJustCompleted] = useState(false)
 
   // Persist across refreshes (also survives accidental navigation away).
   useEffect(() => {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, freeForm, result }))
-  }, [answers, freeForm, result])
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, result, moneyResult }))
+  }, [answers, result, moneyResult])
 
   const setAnswer = useCallback((id: string, value: number) => {
     setAnswers((prev) => ({ ...prev, [id]: value }))
   }, [])
 
-  const setFreeForm = useCallback((id: keyof FreeForm, value: string) => {
-    setFreeFormState((prev) => ({ ...prev, [id]: value }))
-  }, [])
-
-  const runSubmit = useCallback((answersArg: Record<string, number>, freeFormArg: FreeForm, resultArg: QuizResult) => {
-    setSubmitState("sending")
-    submitResponse({
-      answers: answersArg,
-      result: resultArg,
-      moneyViews: freeFormArg.moneyViews,
-      moneyAssociation: freeFormArg.moneyAssociation,
-      submittedAt: new Date().toISOString(),
-    })
-      .then(() => setSubmitState("sent"))
-      .catch((err: unknown) => {
-        console.error("Failed to save response:", err)
-        setSubmitState("error")
+  const runSubmit = useCallback(
+    (
+      answersArg: Record<string, number>,
+      resultArg: QuizResult,
+      moneyArg: MoneyProfile | null,
+    ) => {
+      setSubmitState("sending")
+      submitResponse({
+        answers: answersArg,
+        result: resultArg,
+        moneyResult: moneyArg,
+        submittedAt: new Date().toISOString(),
       })
-  }, [])
+        .then(() => setSubmitState("sent"))
+        .catch((err: unknown) => {
+          console.error("Failed to save response:", err)
+          setSubmitState("error")
+        })
+    },
+    [],
+  )
 
   const completeQuiz = useCallback(() => {
     const res = scoreQuiz(answers)
+    const money = scoreMoney(answers)
     setResult(res)
+    setMoneyResult(money)
     setJustCompleted(true)
-    runSubmit(answers, freeForm, res)
-  }, [answers, freeForm, runSubmit])
+    runSubmit(answers, res, money)
+  }, [answers, runSubmit])
 
   const markResultSeen = useCallback(() => setJustCompleted(false), [])
 
   const retrySubmit = useCallback(() => {
-    if (result) runSubmit(answers, freeForm, result)
-  }, [answers, freeForm, result, runSubmit])
+    if (result) runSubmit(answers, result, moneyResult)
+  }, [answers, result, moneyResult, runSubmit])
 
   const resetQuiz = useCallback(() => {
     setAnswers({})
-    setFreeFormState(EMPTY_FREEFORM)
     setResult(null)
+    setMoneyResult(null)
     setSubmitState("idle")
     setJustCompleted(false)
     sessionStorage.removeItem(STORAGE_KEY)
@@ -113,12 +111,11 @@ export function QuizProvider({ children }: { children: ReactNode }) {
 
   const value: QuizContextValue = {
     answers,
-    freeForm,
     result,
+    moneyResult,
     submitState,
     justCompleted,
     setAnswer,
-    setFreeForm,
     completeQuiz,
     markResultSeen,
     retrySubmit,
