@@ -80,13 +80,13 @@
 
 /* Slow aurora drift for the Landing backdrop (transform-only, GPU-friendly). */
 @keyframes aurora-drift-a {
-  0%, 100% { transform: translate(-8%, -4%) scale(1); }
-  50% { transform: translate(8%, 6%) scale(1.15); }
+  0%, 100% { transform: translate(-16%, -10%) scale(1); }
+  50% { transform: translate(16%, 12%) scale(1.25); }
 }
 
 @keyframes aurora-drift-b {
-  0%, 100% { transform: translate(10%, 6%) scale(1.1); }
-  50% { transform: translate(-10%, -6%) scale(1); }
+  0%, 100% { transform: translate(18%, 12%) scale(1.2); }
+  50% { transform: translate(-18%, -12%) scale(1); }
 }
 
 /* Barely-there bob for the Landing brand image. */
@@ -119,11 +119,11 @@
 }
 
 .animate-aurora-a {
-  animation: aurora-drift-a 18s ease-in-out infinite;
+  animation: aurora-drift-a 14s ease-in-out infinite;
 }
 
 .animate-aurora-b {
-  animation: aurora-drift-b 22s ease-in-out infinite;
+  animation: aurora-drift-b 17s ease-in-out infinite;
 }
 
 .animate-float-soft {
