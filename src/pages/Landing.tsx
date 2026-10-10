@@ -10,6 +10,11 @@ export default function Landing() {
     <main className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden px-4 py-16">
       {/* Brand glow — colors come from the theme config (brandGlow token). */}
       <div className="pointer-events-none absolute inset-0 -z-10 animate-glow bg-[radial-gradient(ellipse_at_top,var(--brand-glow),transparent_60%)]" />
+      {/* Aurora drift — two soft color fields crossing behind the hero. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-24 -left-24 size-[32rem] animate-aurora-a rounded-full bg-brand-from/35 blur-2xl" />
+        <div className="absolute top-1/3 -right-28 size-[34rem] animate-aurora-b rounded-full bg-brand-to/35 blur-2xl" />
+      </div>
 
       <motion.div
         className="w-full max-w-2xl space-y-8 text-center"
@@ -21,7 +26,7 @@ export default function Landing() {
           <img
             src={`${import.meta.env.BASE_URL}brand.jpg`}
             alt="AttachedToMoney"
-            className="aspect-square w-full rounded-3xl object-cover"
+            className="aspect-square w-full animate-float-soft rounded-3xl object-cover"
           />
         </motion.div>
 
@@ -30,7 +35,7 @@ export default function Landing() {
           className="text-4xl font-bold tracking-tight text-balance sm:text-5xl"
         >
           How are you{" "}
-          <span className="bg-gradient-to-r from-brand-from to-brand-to bg-clip-text text-transparent">
+          <span className="text-shine bg-clip-text text-transparent">
             AttachedToMoney?
           </span>
         </motion.h1>
